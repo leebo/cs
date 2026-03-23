@@ -1,0 +1,185 @@
+#!/bin/bash
+
+CS_HOME="${HOME}/.cs"
+PROVIDERS_DIR="${CS_HOME}/providers"
+
+show_help() {
+    echo "cs - Claude Code Provider Switcher"
+    echo ""
+    echo "Usage:"
+    echo "  cs <provider>       Switch to provider"
+    echo "  cs -l               List all providers"
+    echo "  cs -c               Show current provider"
+    echo "  cs -e <provider>    Edit provider config"
+    echo "  cs -a <provider>    Add new provider"
+    echo "  cs -d <provider>    Delete provider"
+    echo "  cs -h               Show this help"
+}
+
+list_providers() {
+    if [[ ! -d "$PROVIDERS_DIR" ]]; then
+        echo "❌ Providers directory not found: $PROVIDERS_DIR"
+        return 1
+    fi
+
+    echo "Available providers:"
+    local has_provider=false
+    for f in "$PROVIDERS_DIR"/*.env; do
+        if [[ -f "$f" ]]; then
+            has_provider=true
+            local name=$(basename "$f" .env)
+            local current=""
+            [[ "$name" == "$CS_PROVIDER" ]] && current=" *"
+            echo "  $name$current"
+        fi
+    done
+
+    if [[ "$has_provider" == false ]]; then
+        echo "  (none)"
+    fi
+}
+
+show_current() {
+    if [[ -n "$CS_PROVIDER" ]]; then
+        echo "Current provider: $CS_PROVIDER"
+    else
+        echo "No provider set"
+    fi
+}
+
+edit_provider() {
+    local provider="$1"
+    if [[ -z "$provider" ]]; then
+        echo "❌ Please specify provider name"
+        echo "Usage: cs -e <provider>"
+        return 1
+    fi
+
+    local config_file="${PROVIDERS_DIR}/${provider}.env"
+
+    if [[ ! -f "$config_file" ]]; then
+        echo "❌ Provider '$provider' not found. Run 'cs -l' to list."
+        return 1
+    fi
+
+    ${EDITOR:-vi} "$config_file"
+}
+
+add_provider() {
+    local provider="$1"
+    if [[ -z "$provider" ]]; then
+        echo "❌ Please specify provider name"
+        echo "Usage: cs -a <provider>"
+        return 1
+    fi
+
+    local config_file="${PROVIDERS_DIR}/${provider}.env"
+
+    if [[ -f "$config_file" ]]; then
+        echo "❌ Provider '$provider' already exists. Use 'cs -e $provider' to edit."
+        return 1
+    fi
+
+    cat > "$config_file" << 'EOF'
+# Provider configuration
+# Uncomment and modify as needed:
+
+# For Anthropic/Claude compatible APIs:
+# export ANTHROPIC_BASE_URL=https://api.example.com/anthropic
+# export ANTHROPIC_AUTH_TOKEN=your_token_here
+
+# For OpenAI compatible APIs:
+# export OPENAI_API_KEY=your_key_here
+# export OPENAI_BASE_URL=https://api.example.com/v1
+# export OPENAI_MODEL=gpt-4o
+
+# Clean up conflicting variables:
+# unset OPENAI_API_KEY
+# unset ANTHROPIC_AUTH_TOKEN
+EOF
+
+    echo "✅ Created provider config: $config_file"
+    ${EDITOR:-vi} "$config_file"
+}
+
+delete_provider() {
+    local provider="$1"
+    if [[ -z "$provider" ]]; then
+        echo "❌ Please specify provider name"
+        echo "Usage: cs -d <provider>"
+        return 1
+    fi
+
+    local config_file="${PROVIDERS_DIR}/${provider}.env"
+
+    if [[ ! -f "$config_file" ]]; then
+        echo "❌ Provider '$provider' not found. Run 'cs -l' to list."
+        return 1
+    fi
+
+    read -p "Are you sure you want to delete '$provider'? [y/N] " confirm
+    if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+        rm "$config_file"
+        echo "✅ Deleted provider: $provider"
+    else
+        echo "Cancelled"
+    fi
+}
+
+switch_provider() {
+    local provider="$1"
+    local config_file="${PROVIDERS_DIR}/${provider}.env"
+
+    if [[ ! -f "$config_file" ]]; then
+        echo "❌ Provider '$provider' not found. Run 'cs -l' to list."
+        return 1
+    fi
+
+    # Clear previous environment variables
+    unset ANTHROPIC_API_KEY ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN
+    unset OPENAI_API_KEY OPENAI_BASE_URL OPENAI_MODEL
+
+    # Load new configuration
+    source "$config_file"
+    export CS_PROVIDER="$provider"
+
+    # Save to .cs file in current directory if it looks like a project
+    if [[ -d ".git" ]] || [[ -f "package.json" ]] || [[ -f "README.md" ]] || [[ -f "Cargo.toml" ]] || [[ -f "go.mod" ]]; then
+        echo "$provider" > .cs
+        echo "✅ Switched to $provider (saved to .cs)"
+    else
+        echo "✅ Switched to $provider"
+    fi
+}
+
+case "$1" in
+    -l|--list)
+        list_providers
+        ;;
+    -c|--current)
+        show_current
+        ;;
+    -e|--edit)
+        edit_provider "$2"
+        ;;
+    -a|--add)
+        add_provider "$2"
+        ;;
+    -d|--delete)
+        delete_provider "$2"
+        ;;
+    -h|--help)
+        show_help
+        ;;
+    "")
+        show_help
+        ;;
+    -*)
+        echo "❌ Unknown option: $1"
+        show_help
+        exit 1
+        ;;
+    *)
+        switch_provider "$1"
+        ;;
+esac

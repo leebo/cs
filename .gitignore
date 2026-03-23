@@ -1,0 +1,14 @@
+# Provider configs with sensitive data (but keep example)
+providers/*.env
+!providers/example.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
