@@ -4,6 +4,10 @@
 CS_HOME="${HOME}/.cs"
 PROVIDERS_DIR="${CS_HOME}/providers"
 
+# Load wizard (interactive provider setup)
+# shellcheck source=/dev/null
+[[ -f "${CS_HOME}/lib/cs-wizard.sh" ]] && source "${CS_HOME}/lib/cs-wizard.sh"
+
 # Save current environment variables to restore later
 _cs_save_env() {
     CS_SAVED_ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
@@ -209,6 +213,13 @@ cs() {
         -d|--delete)
             _cs_delete "$arg"
             ;;
+        -u|--update)
+            if declare -f _cs_update >/dev/null 2>&1; then
+                _cs_update
+            else
+                echo "❌ Update not available. Please reinstall cs."
+            fi
+            ;;
         -h|--help|"")
             _cs_help
             ;;
@@ -231,8 +242,9 @@ _cs_help() {
     echo "  cs -l               List all providers"
     echo "  cs -c               Show current provider"
     echo "  cs -e <provider>    Edit provider config"
-    echo "  cs -a <provider>    Add new provider"
+    echo "  cs -a               Add new provider (interactive)"
     echo "  cs -d <provider>    Delete provider"
+    echo "  cs -u               Update cs to latest version"
     echo "  cs -h               Show this help"
 }
 
@@ -280,42 +292,15 @@ _cs_edit() {
         return 1
     fi
 
-    ${EDITOR:-vi} "$config_file"
+    "${EDITOR:-vi}" "$config_file"
 }
 
 _cs_add() {
-    local provider="$1"
-    if [[ -z "$provider" ]]; then
-        echo "❌ Please specify provider name"
-        return 1
+    if declare -f _cs_add_interactive >/dev/null 2>&1; then
+        _cs_add_interactive
+    else
+        echo "❌ Wizard not available. Please reinstall cs."
     fi
-
-    local config_file="${PROVIDERS_DIR}/${provider}.env"
-    if [[ -f "$config_file" ]]; then
-        echo "❌ Provider '$provider' already exists."
-        return 1
-    fi
-
-    cat > "$config_file" << 'EOF'
-# Provider configuration
-# Uncomment and modify as needed:
-
-# For Anthropic/Claude compatible APIs:
-# export ANTHROPIC_BASE_URL=https://api.example.com/anthropic
-# export ANTHROPIC_AUTH_TOKEN=your_token_here
-
-# For OpenAI compatible APIs:
-# export OPENAI_API_KEY=your_key_here
-# export OPENAI_BASE_URL=https://api.example.com/v1
-# export OPENAI_MODEL=gpt-4o
-
-# Clean up conflicting variables:
-# unset OPENAI_API_KEY
-# unset ANTHROPIC_AUTH_TOKEN
-EOF
-
-    echo "✅ Created: $config_file"
-    ${EDITOR:-vi} "$config_file"
 }
 
 _cs_delete() {

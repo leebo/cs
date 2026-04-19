@@ -3,6 +3,10 @@
 CS_HOME="${HOME}/.cs"
 PROVIDERS_DIR="${CS_HOME}/providers"
 
+# Load wizard (interactive provider setup)
+# shellcheck source=/dev/null
+[[ -f "${CS_HOME}/lib/cs-wizard.sh" ]] && source "${CS_HOME}/lib/cs-wizard.sh"
+
 show_help() {
     echo "cs - Claude Code Provider Switcher"
     echo ""
@@ -11,8 +15,9 @@ show_help() {
     echo "  cs -l               List all providers"
     echo "  cs -c               Show current provider"
     echo "  cs -e <provider>    Edit provider config"
-    echo "  cs -a <provider>    Add new provider"
+    echo "  cs -a               Add new provider (interactive)"
     echo "  cs -d <provider>    Delete provider"
+    echo "  cs -u               Update cs to latest version"
     echo "  cs -h               Show this help"
 }
 
@@ -62,44 +67,15 @@ edit_provider() {
         return 1
     fi
 
-    ${EDITOR:-vi} "$config_file"
+    "${EDITOR:-vi}" "$config_file"
 }
 
 add_provider() {
-    local provider="$1"
-    if [[ -z "$provider" ]]; then
-        echo "❌ Please specify provider name"
-        echo "Usage: cs -a <provider>"
-        return 1
+    if declare -f _cs_add_interactive >/dev/null 2>&1; then
+        _cs_add_interactive
+    else
+        echo "❌ Wizard not available. Please reinstall cs."
     fi
-
-    local config_file="${PROVIDERS_DIR}/${provider}.env"
-
-    if [[ -f "$config_file" ]]; then
-        echo "❌ Provider '$provider' already exists. Use 'cs -e $provider' to edit."
-        return 1
-    fi
-
-    cat > "$config_file" << 'EOF'
-# Provider configuration
-# Uncomment and modify as needed:
-
-# For Anthropic/Claude compatible APIs:
-# export ANTHROPIC_BASE_URL=https://api.example.com/anthropic
-# export ANTHROPIC_AUTH_TOKEN=your_token_here
-
-# For OpenAI compatible APIs:
-# export OPENAI_API_KEY=your_key_here
-# export OPENAI_BASE_URL=https://api.example.com/v1
-# export OPENAI_MODEL=gpt-4o
-
-# Clean up conflicting variables:
-# unset OPENAI_API_KEY
-# unset ANTHROPIC_AUTH_TOKEN
-EOF
-
-    echo "✅ Created provider config: $config_file"
-    ${EDITOR:-vi} "$config_file"
 }
 
 delete_provider() {
@@ -137,6 +113,8 @@ switch_provider() {
 
     # Clear previous environment variables
     unset ANTHROPIC_API_KEY ANTHROPIC_BASE_URL ANTHROPIC_AUTH_TOKEN
+    unset ANTHROPIC_MODEL ANTHROPIC_SMALL_FAST_MODEL
+    unset ANTHROPIC_DEFAULT_SONNET_MODEL ANTHROPIC_DEFAULT_OPUS_MODEL ANTHROPIC_DEFAULT_HAIKU_MODEL
     unset OPENAI_API_KEY OPENAI_BASE_URL OPENAI_MODEL
 
     # Load new configuration
@@ -167,6 +145,13 @@ case "$1" in
         ;;
     -d|--delete)
         delete_provider "$2"
+        ;;
+    -u|--update)
+        if declare -f _cs_update >/dev/null 2>&1; then
+            _cs_update
+        else
+            echo "❌ Update not available. Please reinstall cs."
+        fi
         ;;
     -h|--help)
         show_help

@@ -24,8 +24,8 @@ cs -c
 # 编辑 provider 配置
 cs -e zhipu
 
-# 添加新 provider
-cs -a my-custom
+# 交互式添加 provider（选择厂商、模型、输入 Key）
+cs -a
 
 # 删除 provider
 cs -d my-custom
@@ -70,9 +70,38 @@ unset OPENAI_MODEL
 | `cs -l` | 列出所有 provider |
 | `cs -c` | 显示当前 provider |
 | `cs -e <name>` | 编辑 provider 配置 |
-| `cs -a <name>` | 添加新 provider |
+| `cs -a` | 交互式添加 provider |
 | `cs -d <name>` | 删除 provider |
+| `cs -u` | 更新 cs 到最新版本 |
 | `cs -h` | 显示帮助 |
+
+## Windows 支持
+
+### 推荐：WSL（完全兼容）
+
+在 WSL 终端中与 Linux 使用方式完全相同：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/leebo/cs/main/install.sh | bash
+source ~/.bashrc
+```
+
+### 原生 Windows：Git Bash
+
+Claude Code 在 Windows 上内部使用 Git Bash，cs 工具与其完全兼容。
+
+**前提**：安装 [Git for Windows](https://git-scm.com/download/win)（含 Git Bash）
+
+在 Git Bash 中运行：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/leebo/cs/main/install.sh | bash
+source ~/.bash_profile
+```
+
+安装脚本会自动检测 Git Bash 环境并写入 `~/.bash_profile`（而非 `~/.bashrc`）。
+
+> **注意**：Windows 上 `chmod 600` 不生效，provider 配置文件权限由 NTFS ACL 管理，安全性取决于系统账户权限设置。
 
 ## 工作原理
 
