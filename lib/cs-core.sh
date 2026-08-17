@@ -8,6 +8,11 @@ PROVIDERS_DIR="${CS_HOME}/providers"
 # shellcheck source=/dev/null
 [[ -f "${CS_HOME}/lib/cs-wizard.sh" ]] && source "${CS_HOME}/lib/cs-wizard.sh"
 
+# Fallback if cs-wizard.sh failed to load (broken/partial install)
+if ! declare -f _cs_dispatch >/dev/null 2>&1; then
+    _cs_dispatch() { echo "$2"; return 1; }
+fi
+
 # Save current environment variables to restore later
 _cs_save_env() {
     CS_SAVED_ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
@@ -208,17 +213,19 @@ cs() {
             _cs_edit "$arg"
             ;;
         -a|--add)
-            _cs_add "$arg"
+            if [[ -n "$arg" ]]; then
+                echo "ℹ️  cs -a 不接受参数，请在交互向导中选择/设置别名。已忽略: $arg"
+            fi
+            _cs_dispatch _cs_cmd_add "❌ Wizard not available. Please reinstall cs."
             ;;
         -d|--delete)
             _cs_delete "$arg"
             ;;
+        -r|--reset)
+            _cs_reset
+            ;;
         -u|--update)
-            if declare -f _cs_update >/dev/null 2>&1; then
-                _cs_update
-            else
-                echo "❌ Update not available. Please reinstall cs."
-            fi
+            _cs_dispatch _cs_cmd_update "❌ Update not available. Please reinstall cs."
             ;;
         -h|--help|"")
             _cs_help
@@ -244,6 +251,7 @@ _cs_help() {
     echo "  cs -e <provider>    Edit provider config"
     echo "  cs -a               Add new provider (interactive)"
     echo "  cs -d <provider>    Delete provider"
+    echo "  cs -r               Reset to official Claude Code (clear active provider)"
     echo "  cs -u               Update cs to latest version"
     echo "  cs -h               Show this help"
 }
@@ -295,14 +303,6 @@ _cs_edit() {
     "${EDITOR:-vi}" "$config_file"
 }
 
-_cs_add() {
-    if declare -f _cs_add_interactive >/dev/null 2>&1; then
-        _cs_add_interactive
-    else
-        echo "❌ Wizard not available. Please reinstall cs."
-    fi
-}
-
 _cs_delete() {
     local provider="$1"
     if [[ -z "$provider" ]]; then
@@ -321,6 +321,22 @@ _cs_delete() {
         rm "$config_file"
         echo "✅ Deleted: $provider"
     fi
+}
+
+# Clear the active provider in the current shell and fall back to official
+# Claude Code / Anthropic defaults. Does not touch any .cs file — if the
+# current directory still has one, the next directory change will reload it,
+# same as switching providers manually inside a .cs-tracked project.
+_cs_reset() {
+    if [[ -z "$CS_PROVIDER" ]]; then
+        echo "ℹ️  当前未设置 provider，已经是官方 Claude Code 默认配置"
+        return 0
+    fi
+
+    local prev="$CS_PROVIDER"
+    _cs_clear_env
+    unset CS_PROVIDER
+    echo "✅ 已从 '$prev' 恢复官方 Claude Code 默认配置"
 }
 
 _cs_switch() {

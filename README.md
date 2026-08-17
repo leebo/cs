@@ -4,10 +4,23 @@
 
 ## 安装
 
+一条命令安装（自动识别 Zsh / Bash / Fish，写入对应的 shell 配置文件）：
+
 ```bash
-curl -fsSL https://raw.githubusercontent.com/bobo/ai-env/main/cs/install.sh | bash
-source ~/.zshrc  # 或 ~/.bashrc
+curl -fsSL https://raw.githubusercontent.com/leebo/cs/main/install.sh | bash
 ```
+
+装完按提示 `source` 一下让当前终端立即生效（或直接重开终端）：
+
+```bash
+source ~/.zshrc   # Bash 用户是 ~/.bashrc，Fish 用户是 ~/.config/fish/config.fish
+```
+
+安装脚本做了什么：
+- 把 `bin/`、`lib/`、`providers.json` 部署到 `~/.cs/`
+- 按你当前登录 shell（`$SHELL`）自动把 `source ~/.cs/lib/cs-core(.fish)` 写进对应 rc 文件；已经写过就跳过，重复运行安装脚本不会重复追加
+- 把仓库自带的 `providers.json` 拷贝一份到 `~/.cs/providers_catalog.json` 作为本地缓存（24 小时内 `cs -a` 不会重新联网拉取，`cs -u` 会强制刷新）
+- provider 密钥文件（`~/.cs/providers/*.env`）默认 `chmod 600`，只有当前系统用户能读
 
 ## 快速开始
 
@@ -29,6 +42,9 @@ cs -a
 
 # 删除 provider
 cs -d my-custom
+
+# 还原官方 Claude Code 默认配置（清掉当前 shell 的 provider 变量）
+cs -r
 ```
 
 ## 目录级自动切换
@@ -72,6 +88,7 @@ unset OPENAI_MODEL
 | `cs -e <name>` | 编辑 provider 配置 |
 | `cs -a` | 交互式添加 provider |
 | `cs -d <name>` | 删除 provider |
+| `cs -r` | 还原官方 Claude Code 默认配置 |
 | `cs -u` | 更新 cs 到最新版本 |
 | `cs -h` | 显示帮助 |
 

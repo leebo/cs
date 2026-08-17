@@ -1,6 +1,15 @@
 # cs-wizard.sh - Interactive provider setup wizard
 # Sourced by cs-core.sh and bin/cs
 
+# When cs-core.sh sources this file into an interactive Zsh session (the
+# normal install path, so `cs <provider>` can mutate the current shell),
+# these functions run under the Zsh interpreter, not Bash. Zsh arrays are
+# 1-indexed by default, but _cs_menu_select below uses Bash/ksh-style
+# 0-indexed arithmetic (vals[0], vals[$((choice-1))], ...) — without this,
+# every menu selection under Zsh is off by one and index 0 resolves to
+# nothing. KSH_ARRAYS makes Zsh's array indexing match Bash's.
+[[ -n "${ZSH_VERSION:-}" ]] && setopt KSH_ARRAYS 2>/dev/null
+
 _CS_CATALOG_URL="https://raw.githubusercontent.com/leebo/cs/main/providers.json"
 _CS_CATALOG_FILE="${CS_HOME}/providers_catalog.json"
 _CS_CATALOG_TTL=86400
@@ -335,7 +344,9 @@ _cs_write_env_file() {
             local val="${var_tpl//\{\{api_key\}\}/$api_key}"
             val="${val//\{\{model\}\}/$model_id}"
             val="${val//\{\{base_url\}\}/$base_url}"
-            echo "export ${var_name}=\"${val}\""
+            # %q shell-quotes the value so keys/URLs containing ", `, $, etc.
+            # can't break out of the export statement when this file is sourced.
+            printf 'export %s=%q\n' "$var_name" "$val"
         done <<< "$set_vars_raw"
 
         echo ""
@@ -358,17 +369,37 @@ _cs_add_interactive() {
     echo "🚀 Add Provider - Interactive Wizard"
     echo "   (enter q at any prompt to quit)"
 
-    # Ctrl+C 优雅退出
-    local _cs_wizard_interrupted=0
-    trap '_cs_wizard_interrupted=1' INT
+    # Ctrl+C 优雅退出。
+    # A trap whose action includes `return` aborts whatever `read` is
+    # currently blocked on — bash re-delivers the signal, runs this, and
+    # `return` unwinds the innermost running function (verified on bash 3.2,
+    # the macOS default). A trap that only sets a flag does NOT do this: bash
+    # just resumes the same blocked read afterwards, so Ctrl+C appears to hang.
+    # The numeric argument to `return` here is NOT reliably visible as the
+    # aborted function's exit status on bash 3.2 (empirically verified: it's
+    # always reported as 0) — so callers must check the global
+    # _CS_WIZARD_INTERRUPTED flag instead of "$?" to detect an interrupt.
+    _CS_WIZARD_INTERRUPTED=""
+    trap '_CS_WIZARD_INTERRUPTED=1; echo ""; echo "Cancelled (Ctrl+C)."; trap - INT; return 1' INT
 
     local catalog_file
     catalog_file=$(_cs_get_catalog_file) || { trap - INT; return 1; }
 
     # 选择提供商
+    # NOTE: must not pipe into _cs_menu_select — a pipe runs the function in a
+    # subshell, so _CS_MENU_RESULT set inside it would never reach this scope.
+    local provider_lines
+    provider_lines=$(_cs_json_list_providers "$catalog_file")
     _CS_MENU_RESULT=""
-    _cs_json_list_providers "$catalog_file" | \
-        _cs_menu_select "Select a provider:" || { echo "Cancelled."; trap - INT; return 0; }
+    _cs_menu_select "Select a provider:" <<< "$provider_lines" || {
+        # Under Zsh the aborted function's exit status IS non-zero (unlike
+        # Bash 3.2, where it's always 0), so this branch also fires on
+        # Ctrl+C there — skip the redundant message, the trap already printed one.
+        [[ "$_CS_WIZARD_INTERRUPTED" != "1" ]] && echo "Cancelled."
+        trap - INT
+        return 0
+    }
+    [[ "$_CS_WIZARD_INTERRUPTED" == "1" ]] && return 0
     local provider_id="$_CS_MENU_RESULT"
     local display_name
     display_name=$(_cs_json_get_field "$catalog_file" "$provider_id" "name")
@@ -385,7 +416,12 @@ _cs_add_interactive() {
         if [[ -z "$model_id" ]]; then echo "Cancelled."; trap - INT; return 0; fi
     else
         _CS_MENU_RESULT=""
-        echo "$model_lines" | _cs_menu_select "Select a model:" || { echo "Cancelled."; trap - INT; return 0; }
+        _cs_menu_select "Select a model:" <<< "$model_lines" || {
+            [[ "$_CS_WIZARD_INTERRUPTED" != "1" ]] && echo "Cancelled."
+            trap - INT
+            return 0
+        }
+        [[ "$_CS_WIZARD_INTERRUPTED" == "1" ]] && return 0
         model_id="$_CS_MENU_RESULT"
         echo "  -> $model_id"
     fi
@@ -405,6 +441,7 @@ _cs_add_interactive() {
     # API Key（隐藏输入）
     echo ""
     _cs_read_secret "Enter API Key: "
+    [[ "$_CS_WIZARD_INTERRUPTED" == "1" ]] && return 0
     local api_key="$_CS_SECRET_RESULT"
     if [[ -z "$api_key" ]]; then
         echo "❌ API Key 不能为空"
@@ -450,4 +487,27 @@ _cs_add_interactive() {
     echo ""
     echo "✅ Provider '$provider_alias' configured successfully!"
     echo "   Switch with: cs $provider_alias"
+}
+
+# ─── Command Dispatch ──────────────────────────────────────────────────────────
+# bin/cs and lib/cs-core.sh both source this file and both need to run the
+# wizard / self-update with the same "not available, reinstall" fallback.
+# Keeping that check here means it only has to be written once.
+
+_cs_cmd_add() {
+    _cs_add_interactive
+}
+
+_cs_cmd_update() {
+    _cs_update
+}
+
+_cs_dispatch() {
+    local fn="$1" not_available_msg="$2"
+    if declare -f "$fn" >/dev/null 2>&1; then
+        "$fn"
+    else
+        echo "$not_available_msg"
+        return 1
+    fi
 }

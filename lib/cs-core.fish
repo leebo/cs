@@ -133,8 +133,11 @@ function _cs_load_provider
             set -l trimmed (string trim $line)
             if string match -q 'export *' $trimmed
                 set -l kv (string replace 'export ' '' $trimmed)
-                set -l key (string split '=' $kv)[1]
-                set -l val (string split '=' $kv)[2]
+                # -m1 caps the split at the first '=' so values that contain
+                # '=' themselves (query strings, JWT-style tokens) survive intact.
+                set -l parts (string split -m1 '=' $kv)
+                set -l key $parts[1]
+                set -l val $parts[2]
                 set -gx $key (string trim --chars='"' $val)
             end
         end < "$config_file"
