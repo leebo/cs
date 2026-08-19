@@ -1,142 +1,136 @@
 {
   "version": "1",
-  "updated": "2026-04-19",
+  "updated": "2026-08-19",
   "providers": [
     {
       "id": "zhipu",
       "name": "智谱 AI (GLM)",
       "default_alias": "zp",
-      "api_type": "openai",
-      "base_url": "https://open.bigmodel.cn/api/paas/v4/",
+      "api_type": "anthropic",
+      "base_url": "https://open.bigmodel.cn/api/anthropic",
       "input_base_url": false,
       "set_vars": {
-        "OPENAI_API_KEY": "{{api_key}}",
-        "OPENAI_BASE_URL": "{{base_url}}",
-        "OPENAI_MODEL": "{{model}}"
+        "ANTHROPIC_AUTH_TOKEN": "{{api_key}}",
+        "ANTHROPIC_BASE_URL": "{{base_url}}",
+        "ANTHROPIC_MODEL": "{{model}}"
       },
-      "unset_vars": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"],
+      "unset_vars": ["OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"],
       "models": [
-        {"id": "glm-4-plus",  "label": "GLM-4-Plus  (推荐，能力最强)"},
-        {"id": "glm-4-air",   "label": "GLM-4-Air   (快速，性价比高)"},
-        {"id": "glm-4-flash", "label": "GLM-4-Flash (免费额度)"},
-        {"id": "glm-4v-plus", "label": "GLM-4V-Plus (多模态)"}
+        {"id": "glm-5.3[1m]", "label": "GLM-5.3 (1M 上下文，推荐，2026-08-14 发布)"},
+        {"id": "glm-4.7",     "label": "GLM-4.7     (稳定版，Haiku 档位常用)"},
+        {"id": "glm-4-air",  "label": "GLM-4-Air   (快速，性价比高)"},
+        {"id": "glm-4-flash","label": "GLM-4-Flash (免费额度)"}
       ]
     },
     {
       "id": "kimi",
       "name": "Kimi (月之暗面)",
       "default_alias": "km",
-      "api_type": "openai",
-      "base_url": "https://api.moonshot.cn/v1",
+      "api_type": "anthropic",
+      "base_url": "https://api.moonshot.cn/anthropic",
       "input_base_url": false,
       "set_vars": {
-        "OPENAI_API_KEY": "{{api_key}}",
-        "OPENAI_BASE_URL": "{{base_url}}",
-        "OPENAI_MODEL": "{{model}}"
+        "ANTHROPIC_AUTH_TOKEN": "{{api_key}}",
+        "ANTHROPIC_BASE_URL": "{{base_url}}",
+        "ANTHROPIC_MODEL": "{{model}}"
       },
-      "unset_vars": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"],
+      "unset_vars": ["OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"],
       "models": [
-        {"id": "moonshot-v1-8k",   "label": "moonshot-v1-8k   (8K 上下文)"},
-        {"id": "moonshot-v1-32k",  "label": "moonshot-v1-32k  (32K，推荐)"},
-        {"id": "moonshot-v1-128k", "label": "moonshot-v1-128k (128K 长文档)"}
+        {"id": "kimi-k3[1m]",              "label": "kimi-k3[1m]              (1M 上下文，默认开思考，推荐)"},
+        {"id": "kimi-k2.7-code",           "label": "kimi-k2.7-code           (需手动开启思考)"},
+        {"id": "kimi-k2.7-code-highspeed", "label": "kimi-k2.7-code-highspeed (高速版，5-6倍输出速度)"}
       ]
     },
     {
       "id": "minimax",
       "name": "MiniMax",
       "default_alias": "mm",
-      "api_type": "openai",
-      "base_url": "https://api.minimax.chat/v1",
+      "api_type": "anthropic",
+      "base_url": "https://api.minimaxi.com/anthropic",
       "input_base_url": false,
       "set_vars": {
-        "OPENAI_API_KEY": "{{api_key}}",
-        "OPENAI_BASE_URL": "{{base_url}}",
-        "OPENAI_MODEL": "{{model}}"
+        "ANTHROPIC_AUTH_TOKEN": "{{api_key}}",
+        "ANTHROPIC_BASE_URL": "{{base_url}}",
+        "ANTHROPIC_MODEL": "{{model}}"
       },
-      "unset_vars": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"],
+      "unset_vars": ["OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"],
       "models": [
-        {"id": "abab6.5s-chat", "label": "abab6.5s-chat (推荐，综合最强)"},
-        {"id": "abab6.5-chat",  "label": "abab6.5-chat  (标准版)"},
-        {"id": "abab5.5-chat",  "label": "abab5.5-chat  (轻量快速)"}
+        {"id": "MiniMax-M3[1m]", "label": "MiniMax-M3[1m] (1M 上下文，官方推荐，2026-05 发布)"},
+        {"id": "MiniMax-M2",     "label": "MiniMax-M2     (上一代，更便宜)"}
       ]
     },
     {
       "id": "qwen",
       "name": "阿里百炼 / 通义千问",
       "default_alias": "qw",
-      "api_type": "openai",
-      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1",
+      "api_type": "anthropic",
+      "base_url": "https://dashscope.aliyuncs.com/apps/anthropic",
       "input_base_url": false,
       "set_vars": {
-        "OPENAI_API_KEY": "{{api_key}}",
-        "OPENAI_BASE_URL": "{{base_url}}",
-        "OPENAI_MODEL": "{{model}}"
+        "ANTHROPIC_AUTH_TOKEN": "{{api_key}}",
+        "ANTHROPIC_BASE_URL": "{{base_url}}",
+        "ANTHROPIC_MODEL": "{{model}}"
       },
-      "unset_vars": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"],
+      "unset_vars": ["OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"],
       "models": [
-        {"id": "qwen-plus",             "label": "qwen-plus             (推荐，能力与成本均衡)"},
-        {"id": "qwen-turbo",            "label": "qwen-turbo            (高速，低成本)"},
-        {"id": "qwen-max",              "label": "qwen-max              (旗舰，能力最强)"},
-        {"id": "qwen2.5-72b-instruct",  "label": "qwen2.5-72b-instruct  (开源版旗舰)"},
-        {"id": "qwen-long",             "label": "qwen-long             (超长上下文)"}
+        {"id": "qwen3.7-max",     "label": "qwen3.7-max     (旗舰，Opus 档位)"},
+        {"id": "qwen3.7-plus",    "label": "qwen3.7-plus    (Coding Plan 默认，推荐)"},
+        {"id": "qwen3.6-flash",   "label": "qwen3.6-flash   (快速，Haiku 档位)"},
+        {"id": "qwen3-coder-plus","label": "qwen3-coder-plus (老版兼容端点专用)"}
       ]
     },
     {
       "id": "hunyuan",
       "name": "腾讯混元",
       "default_alias": "hy",
-      "api_type": "openai",
-      "base_url": "https://api.hunyuan.cloud.tencent.com/v1",
+      "api_type": "anthropic",
+      "base_url": "https://api.hunyuan.cloud.tencent.com/anthropic",
       "input_base_url": false,
       "set_vars": {
-        "OPENAI_API_KEY": "{{api_key}}",
-        "OPENAI_BASE_URL": "{{base_url}}",
-        "OPENAI_MODEL": "{{model}}"
+        "ANTHROPIC_AUTH_TOKEN": "{{api_key}}",
+        "ANTHROPIC_BASE_URL": "{{base_url}}",
+        "ANTHROPIC_MODEL": "{{model}}"
       },
-      "unset_vars": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"],
+      "unset_vars": ["OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"],
       "models": [
-        {"id": "hunyuan-pro",      "label": "hunyuan-pro      (旗舰版，推荐)"},
-        {"id": "hunyuan-standard", "label": "hunyuan-standard (标准版)"},
-        {"id": "hunyuan-lite",     "label": "hunyuan-lite     (轻量免费)"},
-        {"id": "hunyuan-turbo",    "label": "hunyuan-turbo    (高速版)"}
+        {"id": "hunyuan-2.0-thinking-20251109", "label": "hunyuan-2.0-thinking-20251109 (推理模型，推荐用于编程)"},
+        {"id": "hunyuan-2.0-instruct-20251111", "label": "hunyuan-2.0-instruct-20251111 (非推理，速度更快)"}
       ]
     },
     {
       "id": "deepseek",
       "name": "DeepSeek",
       "default_alias": "ds",
-      "api_type": "openai",
-      "base_url": "https://api.deepseek.com/v1",
+      "api_type": "anthropic",
+      "base_url": "https://api.deepseek.com/anthropic",
       "input_base_url": false,
       "set_vars": {
-        "OPENAI_API_KEY": "{{api_key}}",
-        "OPENAI_BASE_URL": "{{base_url}}",
-        "OPENAI_MODEL": "{{model}}"
+        "ANTHROPIC_AUTH_TOKEN": "{{api_key}}",
+        "ANTHROPIC_BASE_URL": "{{base_url}}",
+        "ANTHROPIC_MODEL": "{{model}}"
       },
-      "unset_vars": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"],
+      "unset_vars": ["OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"],
       "models": [
-        {"id": "deepseek-chat",     "label": "deepseek-chat     (DeepSeek-V3，推荐)"},
-        {"id": "deepseek-reasoner", "label": "deepseek-reasoner (DeepSeek-R1，推理)"}
+        {"id": "deepseek-v4-pro",   "label": "deepseek-v4-pro   (推理/旗舰，Opus 档位，未逐字核对，用前建议验证)"},
+        {"id": "deepseek-v4-flash", "label": "deepseek-v4-flash (快速，Haiku 档位，未逐字核对，用前建议验证)"}
       ]
     },
     {
       "id": "volcengine",
       "name": "火山引擎 / 字节跳动",
       "default_alias": "vl",
-      "api_type": "openai",
-      "base_url": "https://ark.cn-beijing.volces.com/api/v3",
+      "api_type": "anthropic",
+      "base_url": "https://ark.cn-beijing.volces.com/api/coding",
       "input_base_url": false,
       "set_vars": {
-        "OPENAI_API_KEY": "{{api_key}}",
-        "OPENAI_BASE_URL": "{{base_url}}",
-        "OPENAI_MODEL": "{{model}}"
+        "ANTHROPIC_AUTH_TOKEN": "{{api_key}}",
+        "ANTHROPIC_BASE_URL": "{{base_url}}",
+        "ANTHROPIC_MODEL": "{{model}}"
       },
-      "unset_vars": ["ANTHROPIC_API_KEY", "ANTHROPIC_BASE_URL", "ANTHROPIC_AUTH_TOKEN"],
+      "unset_vars": ["OPENAI_API_KEY", "OPENAI_BASE_URL", "OPENAI_MODEL"],
       "models": [
-        {"id": "doubao-pro-32k",     "label": "doubao-pro-32k     (推荐，综合能力强)"},
-        {"id": "doubao-pro-128k",    "label": "doubao-pro-128k    (长上下文版)"},
-        {"id": "doubao-lite-32k",    "label": "doubao-lite-32k    (轻量快速)"},
-        {"id": "deepseek-r1-250528", "label": "deepseek-r1-250528 (DeepSeek-R1 火山版)"}
+        {"id": "ark-code-latest",                  "label": "ark-code-latest                  (Coding Plan 自动选优，推荐)"},
+        {"id": "doubao-seed-code-preview-latest",   "label": "doubao-seed-code-preview-latest   (锁定豆包 Seed-Code 模型)"}
       ]
     },
     {
