@@ -68,9 +68,9 @@ cd my-project
 
 ```bash
 # zhipu.env
-export ANTHROPIC_BASE_URL=https://api.minimaxi.com/anthropic
+export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/anthropic
 export ANTHROPIC_AUTH_TOKEN=your_token
-export ANTHROPIC_MODEL=MiniMax-M2.7
+export ANTHROPIC_MODEL=glm-5.3[1m]
 
 # 清除冲突变量
 unset OPENAI_API_KEY
